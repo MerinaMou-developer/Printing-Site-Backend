@@ -20,12 +20,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
+# Import admin configuration to register customizations
+from . import admin_config  # noqa
+
 urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
     
-    # API
-    path('api/', include('api.urls')),
+    # API v1 - Domain-based structure
+    path('api/v1/auth/', include('apps.accounts.api.v1.urls')),
+    path('api/v1/', include('apps.catalog.api.v1.urls')),
+    path('api/v1/', include('apps.cart.api.v1.urls')),
+    path('api/v1/', include('apps.orders.api.v1.urls')),
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
