@@ -20,6 +20,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     GET /api/v1/products/ - List all active products (Public - No Auth)
     GET /api/v1/products/{id}/ - Get product by ID (Public - No Auth)
     GET /api/v1/products/{slug}/ - Get product by slug (Public - No Auth)
+    GET /api/v1/products/with_service/ - List all products with service (Public - No Auth)
+    GET /api/v1/products/with_category/ - List all products with category (Public - No Auth)
     POST /api/v1/products/ - Create product (admin only)
     PUT /api/v1/products/{id}/ - Update product by ID (admin only)
     PATCH /api/v1/products/{id}/ - Partial update product by ID (admin only)
@@ -35,7 +37,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         """Public access for read, admin required for write"""
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'with_service', 'with_category']:
             permission_classes = [AllowAny]  # Public access
         else:
             permission_classes = [IsAdminUser]  # Admin only for write
@@ -90,5 +92,43 @@ class ProductViewSet(viewsets.ModelViewSet):
         """Get product with requirements"""
         instance = self.get_object()
         serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def with_service(self, request):
+        """
+        Get all products that have a service (service is not null)
+        
+        GET /api/v1/products/with_service/ - List all products with service (Public - No Auth)
+        """
+        # Start with optimized base queryset
+        queryset = Product.objects.select_related('category', 'service').prefetch_related(
+            'images', 'requirements'
+        ).filter(service__isnull=False)
+        
+        # Apply same filtering as list action (only active for public users)
+        if not request.user.is_staff:
+            queryset = queryset.filter(is_active=True)
+        
+        serializer = ProductListSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def with_category(self, request):
+        """
+        Get all products that have a category (category is not null)
+        
+        GET /api/v1/products/with_category/ - List all products with category (Public - No Auth)
+        """
+        # Start with optimized base queryset
+        queryset = Product.objects.select_related('category', 'service').prefetch_related(
+            'images', 'requirements'
+        ).filter(category__isnull=False)
+        
+        # Apply same filtering as list action (only active for public users)
+        if not request.user.is_staff:
+            queryset = queryset.filter(is_active=True)
+        
+        serializer = ProductListSerializer(queryset, many=True)
         return Response(serializer.data)
 
