@@ -50,7 +50,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def products(self, request, id=None):
         """Get all products in a category"""
         category = self.get_object()
-        products = Product.objects.filter(category=category, is_active=True)
+        products = Product.objects.filter(
+            category=category, 
+            is_active=True
+        ).select_related('category', 'service').prefetch_related('images', 'requirements')
         
         # Apply filters
         search = request.query_params.get('search', None)
@@ -62,9 +65,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         # Pagination
         page = self.paginate_queryset(products)
         if page is not None:
-            serializer = ProductListSerializer(page, many=True)
+            serializer = ProductListSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
         
-        serializer = ProductListSerializer(products, many=True)
+        serializer = ProductListSerializer(products, many=True, context={'request': request})
         return Response(serializer.data)
 
