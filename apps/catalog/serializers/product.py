@@ -18,6 +18,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True, allow_null=True)
     service_name = serializers.CharField(source='service.name', read_only=True, allow_null=True)
     current_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    main_image = serializers.SerializerMethodField()
     
     class Meta:
         model = Product
@@ -27,6 +28,15 @@ class ProductListSerializer(serializers.ModelSerializer):
             'short_description', 'price', 'sale_price', 'current_price',
             'main_image', 'in_stock', 'is_featured', 'total_sold'
         )
+    
+    def get_main_image(self, obj):
+        """Return full URL for main_image"""
+        if obj.main_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.main_image.url)
+            return obj.main_image.url
+        return None
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
@@ -116,6 +126,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True, allow_null=True)
     service_name = serializers.CharField(source='service.name', read_only=True, allow_null=True)
     current_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    main_image = serializers.SerializerMethodField()
     
     class Meta:
         model = Product
@@ -126,4 +137,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'stock_quantity', 'in_stock', 'main_image', 'images',
             'requirements', 'is_featured', 'total_sold', 'created_at', 'updated_at'
         )
+    
+    def get_main_image(self, obj):
+        """Return full URL for main_image"""
+        if obj.main_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.main_image.url)
+            return obj.main_image.url
+        return None
 

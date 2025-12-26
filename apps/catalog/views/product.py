@@ -110,7 +110,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         if not request.user.is_staff:
             queryset = queryset.filter(is_active=True)
         
-        serializer = ProductListSerializer(queryset, many=True)
+        serializer = ProductListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
@@ -129,6 +129,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         if not request.user.is_staff:
             queryset = queryset.filter(is_active=True)
         
-        serializer = ProductListSerializer(queryset, many=True)
+        serializer = ProductListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
